@@ -1,3 +1,5 @@
-pub fn log(message: &str) {
-    println!("Log: {}", message);
+use std::fmt::Debug;
+
+pub fn log<T: Debug>(message: T) {
+    println!("log: {:?}", message);
 }
