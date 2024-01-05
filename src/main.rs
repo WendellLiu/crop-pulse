@@ -1,6 +1,5 @@
+mod db;
 mod logger;
-
-use std::env;
 
 use dotenvy::dotenv;
 use sqlx::sqlite::SqlitePool;
@@ -10,7 +9,7 @@ async fn main() -> anyhow::Result<()> {
     dotenv().expect(".env file not found");
     logger::log("hello world");
 
-    let pool = SqlitePool::connect(&env::var("DATABASE_URL")?).await?;
+    let pool = db::pool::POOL.get().await;
 
     let transaction_id = add_transaction(
         &pool,
