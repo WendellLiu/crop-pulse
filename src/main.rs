@@ -1,31 +1,19 @@
 mod client;
+mod cmd;
 mod db;
 mod logger;
 
 use dotenvy::dotenv;
 
-use crate::client::crop_transaction;
-use crate::db::data::crop_transactions;
-
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> anyhow::Result<()> {
     dotenv().expect(".env file not found");
 
-    let pool = db::pool::POOL.get().await;
+    let tc_types = vec!["N04", "N05"];
 
-    let response = crop_transaction::get_crop_transaction_history(
-        1000,
-        10000,
-        "113.01.01",
-        "113.01.02",
-        "N05",
-    )
-    .await?;
-
-    logger::log(format!("size: {}", response.len()));
-
-    let msg = crop_transactions::add_crop_transactions(pool, response).await?;
-    logger::log(format!("Added new transaction with message {}", msg));
+    for tc_type in tc_types {
+        cmd::fetch_and_save_crop_transaction_history("113.01.01", "113.01.02", tc_type).await?;
+    }
 
     Ok(())
 }
