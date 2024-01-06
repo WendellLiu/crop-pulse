@@ -28,12 +28,16 @@ pub struct CropDataResponse {
 }
 
 pub async fn get_crop_transaction_history(
+    top: u16,
+    skip: u16,
     start_date: &str,
     end_date: &str,
     tc_type: &str,
 ) -> Result<Vec<CropDataResponse>, reqwest::Error> {
     let url = format!(
-    "https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx?$top=1000&$skip=0&StartDate={}&EndDate={}&TcType={}&UnitId=037", 
+    "https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx?$top={}&$skip={}&StartDate={}&EndDate={}&TcType={}&UnitId=037", 
+    top,
+    skip,
     start_date, 
     end_date, 
     tc_type);

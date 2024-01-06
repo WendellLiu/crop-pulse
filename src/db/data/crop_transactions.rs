@@ -2,6 +2,7 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 
 use sqlx::sqlite::SqlitePool;
+use sqlx::Error::Database;
 use sqlx::{QueryBuilder, Sqlite};
 
 use crate::client::crop_transaction;
@@ -46,9 +47,20 @@ pub async fn add_crop_transactions(
     let mut query_builder = build_insert_crop_transactions_query(payload_list);
 
     let query = query_builder.build();
+    let query_result = query.execute(pool).await;
 
-    query.execute(pool).await?.last_insert_rowid();
-    Ok("succussful".to_string())
+    match query_result {
+        Ok(_) => Ok("success".to_string()),
+        Err(err) => match err {
+            Database(ref db_error) => {
+                if db_error.is_unique_violation() {
+                    return Ok("success".to_string());
+                }
+                Err(err.into())
+            }
+            _ => Err(err.into()),
+        },
+    }
 }
 
 fn hash_string<T: Hash>(value: T) -> String {
