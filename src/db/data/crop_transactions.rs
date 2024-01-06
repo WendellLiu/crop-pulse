@@ -4,8 +4,15 @@ use std::hash::{Hash, Hasher};
 use sqlx::sqlite::SqlitePool;
 use sqlx::Error::Database;
 use sqlx::{QueryBuilder, Sqlite};
+use thiserror::Error;
 
 use crate::client::crop_transaction;
+
+#[derive(Error, Debug)]
+pub enum DbError {
+    #[error("input error: `{0}`")]
+    InputError(String),
+}
 
 fn build_insert_crop_transactions_query(
     crop_transaction_list: Vec<crop_transaction::CropDataResponse>,
@@ -44,6 +51,10 @@ pub async fn add_crop_transactions(
     pool: &SqlitePool,
     payload_list: Vec<crop_transaction::CropDataResponse>,
 ) -> anyhow::Result<String> {
+    if payload_list.len() == 0 {
+        return Err(DbError::InputError("payload list is empty".to_string()).into());
+    }
+
     let mut query_builder = build_insert_crop_transactions_query(payload_list);
 
     let query = query_builder.build();
@@ -54,7 +65,7 @@ pub async fn add_crop_transactions(
         Err(err) => match err {
             Database(ref db_error) => {
                 if db_error.is_unique_violation() {
-                    return Ok("success".to_string());
+                    return Ok("success with duplicated data".to_string());
                 }
                 Err(err.into())
             }
