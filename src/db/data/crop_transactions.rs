@@ -5,7 +5,7 @@ use std::hash::{Hash, Hasher};
 
 use crate::client::crop_transaction;
 
-pub async fn add_transaction(
+pub async fn add_crop_transaction(
     pool: &SqlitePool,
     payload: &crop_transaction::CropDataResponse,
 ) -> anyhow::Result<String> {

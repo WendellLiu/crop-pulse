@@ -18,7 +18,7 @@ async fn main() -> anyhow::Result<()> {
     let item = &response[0];
     logger::log(item);
 
-    let transaction_id = crop_transactions::add_transaction(pool, item).await?;
+    let transaction_id = crop_transactions::add_crop_transaction(pool, item).await?;
     logger::log(format!("Added new transaction with id {transaction_id}"));
 
     Ok(())
