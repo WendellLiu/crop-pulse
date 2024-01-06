@@ -1,6 +1,10 @@
+#[path = "../client/mod.rs"]
 mod client;
+#[path = "../cmd/mod.rs"]
 mod cmd;
+#[path = "../db/mod.rs"]
 mod db;
+#[path = "../logger/mod.rs"]
 mod logger;
 
 use clap::Parser;
