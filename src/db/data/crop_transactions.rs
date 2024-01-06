@@ -11,10 +11,10 @@ pub async fn add_transaction(
 ) -> anyhow::Result<String> {
     let mut conn = pool.acquire().await?;
 
-    let id_to_save = format!(
+    let id_to_save = hash_string(format!(
         "{}:{}:{}",
         payload.transaction_date, payload.crop_code, payload.market_code
-    );
+    ));
 
     let id = sqlx::query!(
         r#"
