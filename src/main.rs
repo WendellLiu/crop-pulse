@@ -13,7 +13,8 @@ async fn main() -> anyhow::Result<()> {
 
     let pool = db::pool::POOL.get().await;
 
-    let response = crop_transaction::get_crop_transaction_history().await?;
+    let response =
+        crop_transaction::get_crop_transaction_history("113.01.01", "113.01.02", "N05").await?;
     let item = &response[0];
     logger::log(item);
 

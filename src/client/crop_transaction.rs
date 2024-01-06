@@ -27,8 +27,18 @@ pub struct CropDataResponse {
     pub trading_volume: f32,
 }
 
-pub async fn get_crop_transaction_history() -> Result<Vec<CropDataResponse>, reqwest::Error> {
-    let resp = reqwest::get("https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx?$top=100&$skip=0&StartDate=113.01.01&EndDate=113.01.02&TcType=N05&UnitId=037")
+pub async fn get_crop_transaction_history(
+    start_date: &str,
+    end_date: &str,
+    tc_type: &str,
+) -> Result<Vec<CropDataResponse>, reqwest::Error> {
+    let url = format!(
+    "https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx?$top=1000&$skip=0&StartDate={}&EndDate={}&TcType={}&UnitId=037", 
+    start_date, 
+    end_date, 
+    tc_type);
+
+    let resp = reqwest::get(url)
         .await?
         .json::<Vec<CropDataResponse>>()
         .await?;
