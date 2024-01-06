@@ -24,10 +24,7 @@ INSERT INTO crop_transactions
     );
 
     query_builder.push_values(crop_transaction_list, |mut builder, c_transaction| {
-        let id_to_save = hash_string(format!(
-            "{}:{}:{}",
-            c_transaction.transaction_date, c_transaction.crop_code, c_transaction.market_code
-        ));
+        let id_to_save = generate_id(&c_transaction);
 
         builder
             .push_bind(id_to_save)
@@ -72,6 +69,13 @@ pub async fn add_crop_transactions(
             _ => Err(err.into()),
         },
     }
+}
+
+fn generate_id(response: &crop_transaction::CropDataResponse) -> String {
+    format!(
+        "{}:{}:{}",
+        response.transaction_date, response.crop_code, response.market_code
+    )
 }
 
 fn hash_string<T: Hash>(value: T) -> String {
