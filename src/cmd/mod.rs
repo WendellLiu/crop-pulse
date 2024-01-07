@@ -1,5 +1,5 @@
 use crate::client::crop_transaction;
-use crate::db::data::crop_transactions;
+use crate::db::data::{crop_transactions, daily_crop_transactions};
 use crate::db::pool;
 use crate::logger;
 
@@ -42,6 +42,20 @@ pub async fn fetch_and_save_crop_transaction_history(
         let msg = crop_transactions::add_crop_transactions(pool, response).await?;
         logger::log(format!("Added new transaction with message {}", msg));
     }
+
+    Ok(())
+}
+
+pub async fn aggregate_daily_crop_transactions(date: &str) -> anyhow::Result<()> {
+    logger::log(format!("run with date: {}", date));
+
+    let pool = pool::POOL.get().await;
+
+    let daily_crop_transaction_list =
+        daily_crop_transactions::aggregate_daily_crop_transactions(pool, date).await?;
+    let daily_crop_transaction = &daily_crop_transaction_list[0];
+
+    println!("{:?}", daily_crop_transaction);
 
     Ok(())
 }
