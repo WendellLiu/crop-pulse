@@ -57,5 +57,7 @@ pub async fn aggregate_daily_crop_transactions(date: &str) -> anyhow::Result<()>
 
     println!("{:?}", daily_crop_transaction);
 
+    daily_crop_transactions::add_daily_crop_transactions(pool, daily_crop_transaction_list).await?;
+
     Ok(())
 }
