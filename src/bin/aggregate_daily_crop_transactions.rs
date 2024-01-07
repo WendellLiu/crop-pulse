@@ -15,7 +15,10 @@ use dotenvy::dotenv;
 #[command(author, version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
-    date: Option<String>,
+    start: Option<String>,
+
+    #[arg(short, long)]
+    end: Option<String>,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -34,9 +37,10 @@ async fn main() -> anyhow::Result<()> {
     let day = format!("{:02}", yesterday.day());
     let default_date = format!("{}.{}.{}", year, month, day);
 
-    let date = args.date.unwrap_or(default_date);
+    let start_date = args.start.unwrap_or(default_date.clone());
+    let end_date = args.end.unwrap_or(default_date);
 
-    cmd::aggregate_daily_crop_transactions(&date).await?;
+    cmd::aggregate_daily_crop_transactions(&start_date, &end_date).await?;
 
     Ok(())
 }
