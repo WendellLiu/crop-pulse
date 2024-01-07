@@ -19,7 +19,7 @@ fn build_insert_crop_transactions_query(
 ) -> QueryBuilder<'static, Sqlite> {
     let mut query_builder: QueryBuilder<Sqlite> = QueryBuilder::new(
         r#"
-INSERT INTO crop_transactions 
+REPLACE INTO crop_transactions 
 (id, transaction_date, type_code, crop_code, crop_name, market_code, market_name, high_price, mid_price, low_price, average_price, trading_volume) "#,
     );
 
