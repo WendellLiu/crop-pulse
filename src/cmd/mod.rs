@@ -1,6 +1,7 @@
 use crate::client::crop_transaction;
 use crate::db::data::{crop_transactions, daily_crop_transactions};
 use crate::db::pool;
+use crate::helpers::date;
 use crate::logger;
 
 use chrono::{Datelike, Duration, NaiveDate};
@@ -49,8 +50,8 @@ pub async fn fetch_and_save_crop_transaction_history(
 }
 
 pub async fn aggregate_daily_crop_transactions(
-    start_date_str: &str,
-    end_date_str: &str,
+    start_date_str: date::RocDateString,
+    end_date_str: date::RocDateString,
 ) -> anyhow::Result<()> {
     logger::log(format!(
         "run with start_date: {}, end_date: {}",
@@ -59,13 +60,15 @@ pub async fn aggregate_daily_crop_transactions(
 
     let pool = pool::POOL.get().await;
 
-    let (start_year, start_month, start_day) = parse_roc_date(start_date_str);
-    let (end_year, end_month, end_day) = parse_roc_date(end_date_str);
+    let start_date = {
+        let option: Option<NaiveDate> = start_date_str.into();
+        option.expect("invalid start date")
+    };
 
-    let start_date = NaiveDate::from_ymd_opt(start_year + 1911, start_month, start_day)
-        .expect("invalid start date");
-    let end_date =
-        NaiveDate::from_ymd_opt(end_year + 1911, end_month, end_day).expect("invalid end date");
+    let end_date = {
+        let option: Option<NaiveDate> = end_date_str.into();
+        option.expect("invalid end date")
+    };
 
     let date_list: Vec<String> = (0..=(end_date - start_date).num_days())
         .map(|offset| start_date + Duration::days(offset))
@@ -92,12 +95,4 @@ pub async fn aggregate_daily_crop_transactions(
     daily_crop_transactions::add_daily_crop_transactions(pool, daily_crop_transaction_list).await?;
 
     Ok(())
-}
-
-fn parse_roc_date(date_str: &str) -> (i32, u32, u32) {
-    let parts: Vec<&str> = date_str.split('.').collect();
-    let year = parts[0].parse::<i32>().unwrap();
-    let month = parts[1].parse::<u32>().unwrap();
-    let day = parts[2].parse::<u32>().unwrap();
-    (year, month, day)
 }

@@ -4,12 +4,16 @@ mod client;
 mod cmd;
 #[path = "../db/mod.rs"]
 mod db;
+#[path = "../helpers/mod.rs"]
+mod helpers;
 #[path = "../logger/mod.rs"]
 mod logger;
 
 use chrono::{Datelike, Duration, Utc};
 use clap::Parser;
 use dotenvy::dotenv;
+
+use helpers::date::RocDateString;
 
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
@@ -40,7 +44,8 @@ async fn main() -> anyhow::Result<()> {
     let start_date = args.start.unwrap_or(default_date.clone());
     let end_date = args.end.unwrap_or(default_date);
 
-    cmd::aggregate_daily_crop_transactions(&start_date, &end_date).await?;
+    cmd::aggregate_daily_crop_transactions(RocDateString(start_date), RocDateString(end_date))
+        .await?;
 
     Ok(())
 }

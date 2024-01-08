@@ -4,6 +4,8 @@ mod client;
 mod cmd;
 #[path = "../db/mod.rs"]
 mod db;
+#[path = "../helpers/mod.rs"]
+mod helpers;
 #[path = "../logger/mod.rs"]
 mod logger;
 
