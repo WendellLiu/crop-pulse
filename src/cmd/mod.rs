@@ -1,5 +1,5 @@
 use crate::client::crop_transaction;
-use crate::db::data::{crop_transactions, daily_crop_transactions};
+use crate::db::data::{crop_transactions, crops, daily_crop_transactions};
 use crate::db::pool;
 use crate::helpers::date;
 use crate::logger;
@@ -71,9 +71,19 @@ pub async fn aggregate_daily_crop_transactions(
             daily_crop_transactions::aggregate_daily_crop_transactions(pool, &date).await?;
 
         daily_crop_transaction_list.append(&mut result);
+
+        // append crops data
+        let crop_data = crops::aggregate_crops(pool).await?;
+        crops::add_crops(pool, &crop_data).await?;
+
+        let data_size = crop_data.len();
+        logger::log(format!("Upsert {} crops", data_size));
     }
 
-    println!("size: {}", daily_crop_transaction_list.len());
+    println!(
+        "total daily crop transaction size: {}",
+        daily_crop_transaction_list.len()
+    );
 
     daily_crop_transactions::add_daily_crop_transactions(pool, daily_crop_transaction_list).await?;
 
