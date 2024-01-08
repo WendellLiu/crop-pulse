@@ -3,6 +3,8 @@ use sqlx::sqlite::SqlitePool;
 use sqlx::{QueryBuilder, Sqlite};
 use thiserror::Error;
 
+use crate::helpers::date;
+
 #[derive(Deserialize, Debug)]
 pub struct AggregateDailyCropData {
     pub transaction_date: Option<String>,
@@ -51,7 +53,7 @@ pub struct DailyCropData {
 
 pub async fn aggregate_daily_crop_transactions(
     pool: &SqlitePool,
-    transaction_date: &str,
+    transaction_date: &date::RocDateString,
 ) -> anyhow::Result<Vec<DailyCropData>> {
     let daily_crop_transactions: Vec<AggregateDailyCropData> = sqlx::query_as!(
         AggregateDailyCropData,
@@ -76,7 +78,7 @@ pub async fn aggregate_daily_crop_transactions(
             crop_name,
             type_code
         ",
-        transaction_date
+        transaction_date.0
     )
     .fetch_all(pool)
     .await?;

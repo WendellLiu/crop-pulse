@@ -1,10 +1,10 @@
 use crate::client::crop_transaction;
 use crate::db::data::{crop_transactions, daily_crop_transactions};
 use crate::db::pool;
-use crate::helpers::date;
+use crate::helpers::date::{self, RocDateString};
 use crate::logger;
 
-use chrono::{Datelike, Duration, NaiveDate};
+use chrono::{Duration, NaiveDate};
 
 static STEP: u16 = 1000;
 
@@ -70,15 +70,9 @@ pub async fn aggregate_daily_crop_transactions(
         option.expect("invalid end date")
     };
 
-    let date_list: Vec<String> = (0..=(end_date - start_date).num_days())
+    let date_list: Vec<RocDateString> = (0..=(end_date - start_date).num_days())
         .map(|offset| start_date + Duration::days(offset))
-        .map(|date| {
-            let year = date.year();
-            let month = date.month();
-            let day = date.day();
-
-            format!("{}.{:02}.{:02}", year - 1911, month, day)
-        })
+        .map(|date| date::RocDateString::from(date))
         .collect();
 
     let mut daily_crop_transaction_list = vec![];

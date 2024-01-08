@@ -1,6 +1,6 @@
 use std::fmt;
 
-use chrono::NaiveDate;
+use chrono::{Datelike, NaiveDate};
 
 pub struct RocDateString(pub String);
 
@@ -14,6 +14,16 @@ impl From<RocDateString> for Option<NaiveDate> {
     fn from(roc_date_string: RocDateString) -> Self {
         let (year, month, day) = parse_roc_date(&roc_date_string);
         NaiveDate::from_ymd_opt(year + 1911, month, day)
+    }
+}
+
+impl From<NaiveDate> for RocDateString {
+    fn from(naive_date: NaiveDate) -> Self {
+        let year = naive_date.year();
+        let month = naive_date.month();
+        let day = naive_date.day();
+
+        RocDateString(format!("{}.{:02}.{:02}", year - 1911, month, day))
     }
 }
 
