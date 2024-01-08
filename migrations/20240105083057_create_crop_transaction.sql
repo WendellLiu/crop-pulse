@@ -14,3 +14,4 @@ CREATE TABLE crop_transactions (
     trading_volume REAL
 );
 
+CREATE INDEX unique_index on crop_transactions (transaction_date, crop_code, crop_name, type_code);
