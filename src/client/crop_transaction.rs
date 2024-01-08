@@ -1,5 +1,5 @@
 use reqwest;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize};
 
 use crate::helpers::date;
 
