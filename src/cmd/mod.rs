@@ -9,13 +9,13 @@ use chrono::{Duration, NaiveDate};
 static STEP: u16 = 1000;
 
 pub async fn fetch_and_save_crop_transaction_history(
-    start_date: &str,
-    end_date: &str,
+    start_date_str: date::RocDateString,
+    end_date_str: date::RocDateString,
     tc_type: &str,
 ) -> anyhow::Result<()> {
     logger::log(format!(
         "run with start_date: {}, end_date: {}, tc_type: {}",
-        start_date, end_date, tc_type
+        start_date_str, end_date_str, tc_type
     ));
 
     let pool = pool::POOL.get().await;
@@ -23,13 +23,18 @@ pub async fn fetch_and_save_crop_transaction_history(
     let start = 0;
     let step = STEP;
 
+    // let date_iterator = date::RocDateStringRage(start_date_str, end_date_str);
     let iterator = std::iter::successors(Some(start), move |&n| Some(n + step));
 
     for skip in iterator {
         logger::log(format!("run with step: {}, skip: {}", STEP, skip));
 
         let response = crop_transaction::get_crop_transaction_history(
-            STEP, skip, start_date, end_date, tc_type,
+            STEP,
+            skip,
+            &start_date_str,
+            &end_date_str,
+            tc_type,
         )
         .await?;
 

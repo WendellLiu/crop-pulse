@@ -1,6 +1,8 @@
 use reqwest;
 use serde::{Deserialize, Serialize};
 
+use crate::helpers::date;
+
 #[derive(Deserialize, Debug)]
 pub struct CropDataResponse {
     #[serde(rename = "交易日期")]
@@ -30,8 +32,8 @@ pub struct CropDataResponse {
 pub async fn get_crop_transaction_history(
     top: u16,
     skip: u16,
-    start_date: &str,
-    end_date: &str,
+    start_date: &date::RocDateString,
+    end_date: &date::RocDateString,
     tc_type: &str,
 ) -> Result<Vec<CropDataResponse>, reqwest::Error> {
     let url = format!(

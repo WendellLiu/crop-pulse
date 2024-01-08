@@ -13,6 +13,8 @@ use chrono::{Datelike, Duration, Utc};
 use clap::Parser;
 use dotenvy::dotenv;
 
+use helpers::date;
+
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 struct Args {
@@ -45,7 +47,12 @@ async fn main() -> anyhow::Result<()> {
     let tc_types = vec!["N04", "N05"];
 
     for tc_type in tc_types {
-        cmd::fetch_and_save_crop_transaction_history(&start_date, &end_date, tc_type).await?;
+        cmd::fetch_and_save_crop_transaction_history(
+            date::RocDateString(start_date.clone()),
+            date::RocDateString(end_date.clone()),
+            tc_type,
+        )
+        .await?;
     }
 
     Ok(())
