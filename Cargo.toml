@@ -3,6 +3,14 @@ name = "crop-pulse"
 version = "0.1.0"
 edition = "2021"
 
+[[bin]]
+name = "aggregate_daily_crop_transactions"
+path = "src/bin/aggregate_daily_crop_transactions.rs"
+
+[[bin]]
+name = "fetch_crop_transactions"
+path = "src/bin/fetch_crop_transactions.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
