@@ -1,7 +1,8 @@
 use std::fmt;
 
-use chrono::{Datelike, NaiveDate};
+use chrono::{Datelike, Duration, NaiveDate};
 
+#[derive(Clone)]
 pub struct RocDateString(pub String);
 
 impl fmt::Display for RocDateString {
@@ -33,4 +34,25 @@ fn parse_roc_date(date_str: &RocDateString) -> (i32, u32, u32) {
     let month = parts[1].parse::<u32>().unwrap();
     let day = parts[2].parse::<u32>().unwrap();
     (year, month, day)
+}
+
+pub struct RocDateStringRage(pub RocDateString, pub RocDateString);
+
+impl Iterator for RocDateStringRage {
+    type Item = RocDateString;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let start_date = Option::<NaiveDate>::from(self.0.clone()).expect("invalid start date");
+        let end_date = Option::<NaiveDate>::from(self.1.clone()).expect("invalid end date");
+
+        if start_date > end_date {
+            return None;
+        }
+
+        let current = start_date;
+        let next_start_date = start_date + Duration::days(1);
+        self.0 = next_start_date.into();
+
+        Some(current.into())
+    }
 }

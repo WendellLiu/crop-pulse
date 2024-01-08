@@ -60,23 +60,10 @@ pub async fn aggregate_daily_crop_transactions(
 
     let pool = pool::POOL.get().await;
 
-    let start_date = {
-        let option: Option<NaiveDate> = start_date_str.into();
-        option.expect("invalid start date")
-    };
-
-    let end_date = {
-        let option: Option<NaiveDate> = end_date_str.into();
-        option.expect("invalid end date")
-    };
-
-    let date_list: Vec<RocDateString> = (0..=(end_date - start_date).num_days())
-        .map(|offset| start_date + Duration::days(offset))
-        .map(|date| date::RocDateString::from(date))
-        .collect();
+    let date_iterator = date::RocDateStringRage(start_date_str, end_date_str);
 
     let mut daily_crop_transaction_list = vec![];
-    for date in date_list {
+    for date in date_iterator {
         println!("date: {}", date);
         let mut result =
             daily_crop_transactions::aggregate_daily_crop_transactions(pool, &date).await?;
