@@ -9,11 +9,10 @@ static STEP: u16 = 1000;
 pub async fn fetch_and_save_crop_transaction_history(
     start_date_str: date::RocDateString,
     end_date_str: date::RocDateString,
-    tc_type: &str,
 ) -> anyhow::Result<()> {
     logger::log(format!(
-        "run with start_date: {}, end_date: {}, tc_type: {}",
-        start_date_str, end_date_str, tc_type
+        "run with start_date: {}, end_date: {}",
+        start_date_str, end_date_str,
     ));
 
     let pool = pool::POOL.get().await;
@@ -28,13 +27,12 @@ pub async fn fetch_and_save_crop_transaction_history(
 
         for skip in iterator {
             logger::log(format!(
-                "run with date: {}, tc_type: {}, step: {}, skip: {}",
-                date, tc_type, STEP, skip
+                "run with date: {}, step: {}, skip: {}",
+                date, STEP, skip
             ));
 
             let response =
-                crop_transaction::get_crop_transaction_history(STEP, skip, &date, &date, tc_type)
-                    .await?;
+                crop_transaction::get_crop_transaction_history(STEP, skip, &date, &date).await?;
 
             let response_size = response.len();
 

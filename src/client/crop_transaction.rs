@@ -29,20 +29,20 @@ pub struct CropDataResponse {
     pub trading_volume: f32,
 }
 
+static TC_TYPE_ALLOWLIST: &'static [&str] = &["N04", "N05"];
+
 pub async fn get_crop_transaction_history(
     top: u16,
     skip: u16,
     start_date: &date::RocDateString,
     end_date: &date::RocDateString,
-    tc_type: &str,
 ) -> Result<Vec<CropDataResponse>, reqwest::Error> {
     let url = format!(
-        "https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx?$top={}&$skip={}&StartDate={}&EndDate={}&TcType={}&UnitId=037", 
+        "https://data.moa.gov.tw/Service/OpenData/FromM/FarmTransData.aspx?$top={}&$skip={}&StartDate={}&EndDate={}&UnitId=037", 
         top,
         skip,
         start_date, 
         end_date, 
-        tc_type
     );
 
     let resp = reqwest::get(url)
@@ -50,5 +50,7 @@ pub async fn get_crop_transaction_history(
         .json::<Vec<CropDataResponse>>()
         .await?;
 
-    Ok(resp)
+    let filterd_resp = resp.into_iter().filter(|crop_data| TC_TYPE_ALLOWLIST.contains(&crop_data.type_code.as_str())).collect();
+
+    Ok(filterd_resp)
 }
