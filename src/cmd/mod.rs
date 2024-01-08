@@ -1,10 +1,8 @@
 use crate::client::crop_transaction;
 use crate::db::data::{crop_transactions, daily_crop_transactions};
 use crate::db::pool;
-use crate::helpers::date::{self, RocDateString};
+use crate::helpers::date;
 use crate::logger;
-
-use chrono::{Duration, NaiveDate};
 
 static STEP: u16 = 1000;
 
@@ -23,32 +21,33 @@ pub async fn fetch_and_save_crop_transaction_history(
     let start = 0;
     let step = STEP;
 
-    // let date_iterator = date::RocDateStringRage(start_date_str, end_date_str);
-    let iterator = std::iter::successors(Some(start), move |&n| Some(n + step));
+    let date_iterator = date::RocDateStringRage(start_date_str, end_date_str);
 
-    for skip in iterator {
-        logger::log(format!("run with step: {}, skip: {}", STEP, skip));
+    for date in date_iterator {
+        let iterator = std::iter::successors(Some(start), move |&n| Some(n + step));
 
-        let response = crop_transaction::get_crop_transaction_history(
-            STEP,
-            skip,
-            &start_date_str,
-            &end_date_str,
-            tc_type,
-        )
-        .await?;
+        for skip in iterator {
+            logger::log(format!(
+                "run with date: {}, tc_type: {}, step: {}, skip: {}",
+                date, tc_type, STEP, skip
+            ));
 
-        let response_size = response.len();
+            let response =
+                crop_transaction::get_crop_transaction_history(STEP, skip, &date, &date, tc_type)
+                    .await?;
 
-        logger::log(format!("size: {}", response_size));
+            let response_size = response.len();
 
-        if response_size == 0 {
-            logger::log("no available data");
-            break;
+            logger::log(format!("size: {}", response_size));
+
+            if response_size == 0 {
+                logger::log("no available data");
+                break;
+            }
+
+            let msg = crop_transactions::add_crop_transactions(pool, response).await?;
+            logger::log(format!("Added new transaction with message {}", msg));
         }
-
-        let msg = crop_transactions::add_crop_transactions(pool, response).await?;
-        logger::log(format!("Added new transaction with message {}", msg));
     }
 
     Ok(())
