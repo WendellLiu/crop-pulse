@@ -34,6 +34,24 @@ pub struct CropsData {
     pub crop_name: String,
 }
 
+#[derive(Deserialize, Debug, Clone)]
+pub struct CropsDbData {
+    pub id: Option<String>,
+    pub type_code: Option<String>,
+    pub crop_code: Option<String>,
+    pub crop_name: Option<String>,
+}
+
+impl From<CropsDbData> for CropsData {
+    fn from(crops_db_data: CropsDbData) -> Self {
+        CropsData {
+            type_code: crops_db_data.type_code.expect("Missing type code"),
+            crop_code: crops_db_data.crop_code.expect("Missing crop code"),
+            crop_name: crops_db_data.crop_name.expect("Missing crop name"),
+        }
+    }
+}
+
 pub async fn aggregate_crops(pool: &SqlitePool) -> anyhow::Result<Vec<CropsData>> {
     let daily_crop_transactions: Vec<AggregatedCropsData> = sqlx::query_as!(
         AggregatedCropsData,
@@ -97,4 +115,22 @@ pub async fn add_crops(pool: &SqlitePool, payload_list: &Vec<CropsData>) -> anyh
             _ => Err(err.into()),
         },
     }
+}
+
+pub async fn fetch_all_crops(pool: &SqlitePool) -> anyhow::Result<Vec<CropsData>> {
+    let crops = sqlx::query_as!(
+        CropsDbData,
+        "
+    SELECT
+        *
+    FROM
+        crops
+    WHERE
+        type_code IN('N04', 'N05')
+        "
+    )
+    .fetch_all(pool)
+    .await?;
+
+    Ok(crops.into_iter().map(CropsData::from).collect())
 }

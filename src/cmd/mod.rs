@@ -89,3 +89,21 @@ pub async fn aggregate_daily_crop_transactions(
 
     Ok(())
 }
+
+pub async fn aggregate_daliy_crop_summary(
+    start_date_str: date::RocDateString,
+    end_date_str: date::RocDateString,
+) -> anyhow::Result<()> {
+    logger::log(format!(
+        "run with start_date: {}, end_date: {}",
+        start_date_str, end_date_str
+    ));
+
+    let pool = pool::POOL.get().await;
+
+    let crops = crops::fetch_all_crops(pool).await;
+
+    logger::log(format!("{:?}", crops));
+
+    Ok(())
+}
