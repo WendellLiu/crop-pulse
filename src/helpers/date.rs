@@ -36,9 +36,10 @@ fn parse_roc_date(date_str: &RocDateString) -> (i32, u32, u32) {
     (year, month, day)
 }
 
-pub struct RocDateStringRage(pub RocDateString, pub RocDateString);
+#[derive(Clone)]
+pub struct RocDateStringRange(pub RocDateString, pub RocDateString);
 
-impl Iterator for RocDateStringRage {
+impl Iterator for RocDateStringRange {
     type Item = RocDateString;
 
     fn next(&mut self) -> Option<Self::Item> {

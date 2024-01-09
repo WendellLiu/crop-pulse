@@ -5,7 +5,7 @@ use thiserror::Error;
 
 use crate::helpers::date;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, sqlx::FromRow)]
 pub struct AggregateDailyCropData {
     pub transaction_date: Option<String>,
     pub type_code: Option<String>,
@@ -144,4 +144,55 @@ pub async fn add_daily_crop_transactions(
 
 fn generate_id(data: &DailyCropData) -> String {
     format!("{}:{}", data.transaction_date, data.crop_code)
+}
+
+pub async fn fetch_all_daily_crop_transactions(
+    pool: &SqlitePool,
+    start_date_str: &date::RocDateString,
+    end_date_str: &date::RocDateString,
+    crop_code: &String,
+) -> anyhow::Result<Vec<DailyCropData>> {
+    let date_iterator = date::RocDateStringRange(start_date_str.clone(), end_date_str.clone());
+
+    let parameters = date_iterator
+        .clone()
+        .into_iter()
+        .map(|_| "?")
+        .collect::<Vec<&str>>()
+        .join(", ");
+
+    let sql = format!(
+        "
+        SELECT
+            transaction_date,
+            crop_code,
+            crop_name,
+            type_code,
+            high_price,
+            mid_price,
+            low_price,
+            average_price,
+            trading_volume
+        FROM
+            daily_crop_transactions
+        WHERE
+            transaction_date IN ({}) AND crop_code = ? 
+        ",
+        parameters
+    );
+
+    let mut query = sqlx::query_as::<_, AggregateDailyCropData>(&sql);
+
+    for date in date_iterator {
+        query = query.bind(format!("{}", date));
+    }
+
+    query = query.bind(crop_code);
+
+    let daily_crop_transactions: Vec<AggregateDailyCropData> = query.fetch_all(pool).await?;
+
+    Ok(daily_crop_transactions
+        .into_iter()
+        .map(DailyCropData::from)
+        .collect())
 }

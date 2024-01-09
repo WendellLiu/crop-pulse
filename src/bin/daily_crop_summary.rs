@@ -19,9 +19,6 @@ use helpers::date::RocDateString;
 #[command(author, version, about, long_about = None)]
 struct Args {
     #[arg(short, long)]
-    start: Option<String>,
-
-    #[arg(short, long)]
     end: Option<String>,
 }
 
@@ -41,10 +38,9 @@ async fn main() -> anyhow::Result<()> {
     let day = format!("{:02}", yesterday.day());
     let default_date = format!("{}.{}.{}", year, month, day);
 
-    let start_date = args.start.unwrap_or(default_date.clone());
     let end_date = args.end.unwrap_or(default_date);
 
-    cmd::aggregate_daliy_crop_summary(RocDateString(start_date), RocDateString(end_date)).await?;
+    cmd::aggregate_daliy_crop_summary(RocDateString(end_date)).await?;
 
     Ok(())
 }
