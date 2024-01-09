@@ -118,8 +118,6 @@ pub async fn aggregate_daliy_crop_summary(end_date_str: date::RocDateString) -> 
                     &crop_data.crop_code.to_string(),
                 )
                 .await;
-
-                logger::log(format!("{:?}", data));
             })
         })
         .collect();

@@ -8,6 +8,8 @@ mod db;
 mod helpers;
 #[path = "../logger/mod.rs"]
 mod logger;
+#[path = "../statistic/mod.rs"]
+mod statistic;
 
 use chrono::{Datelike, Duration, Utc};
 use clap::Parser;
