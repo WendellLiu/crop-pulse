@@ -38,7 +38,7 @@ impl From<AggregateDailyCropData> for DailyCropData {
     }
 }
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize, Debug, Clone)]
 pub struct DailyCropData {
     pub transaction_date: String,
     pub type_code: String,
@@ -134,10 +134,12 @@ pub async fn add_daily_crop_transactions(
         return Err(DbError::InputError("payload list is empty".to_string()).into());
     }
 
-    let mut query_builder = build_insert_daily_crop_transactions_query(payload_list);
+    for chunk in payload_list.chunks(1000) {
+        let mut query_builder = build_insert_daily_crop_transactions_query(chunk.to_vec());
 
-    let query = query_builder.build();
-    query.execute(pool).await?;
+        let query = query_builder.build();
+        query.execute(pool).await?;
+    }
 
     Ok("success".to_string())
 }
