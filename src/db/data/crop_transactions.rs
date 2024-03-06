@@ -72,10 +72,11 @@ pub async fn add_crop_transactions(
 }
 
 fn generate_id(response: &crop_transaction::CropDataResponse) -> String {
-    format!(
-        "{}:{}:{}",
-        response.transaction_date, response.crop_code, response.market_code
-    )
+    let transaction_date = response.transaction_date.clone().unwrap_or("".to_string());
+    let crop_code = response.crop_code.clone().unwrap_or("".to_string());
+    let market_code = response.market_code.clone().unwrap_or("".to_string());
+
+    format!("{}:{}:{}", transaction_date, crop_code, market_code)
 }
 
 fn hash_string<T: Hash>(value: T) -> String {
