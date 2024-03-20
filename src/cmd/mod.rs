@@ -106,18 +106,29 @@ pub async fn aggregate_daliy_crop_summary(end_date_str: date::RocDateString) -> 
 
     let tasks: Vec<_> = crop_list
         .into_iter()
+        .take(1) // TODO: only for debug
         .map(|crop_data| {
             let internal_start_date_str = start_date_str.clone();
             let internal_end_date_str = end_date_str.clone();
 
             tokio::spawn(async move {
-                let data = daily_crop_transactions::fetch_all_daily_crop_transactions(
+                let result = daily_crop_transactions::fetch_all_daily_crop_transactions(
                     pool,
                     &internal_start_date_str,
                     &internal_end_date_str,
                     &crop_data.crop_code.to_string(),
                 )
                 .await;
+
+                let crop_data = match result {
+                    Ok(d) => d,
+                    Err(e) => {
+                        logger::error(format!("fetch daily crop transaction data: {:?}", e));
+                        vec![]
+                    }
+                };
+
+                println!("{:?}", crop_data);
             })
         })
         .collect();
