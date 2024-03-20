@@ -1,10 +1,19 @@
 use futures::future;
+use linregress::{FormulaRegressionBuilder, RegressionDataBuilder};
 
 use crate::db::data::{crops, daily_crop_transactions};
 use crate::db::pool;
 use crate::helpers::date;
 use crate::logger;
 use chrono::{Duration, NaiveDate};
+
+struct SummaryMaterial {
+    high_price: Vec<f64>,
+    mid_price: Vec<f64>,
+    low_price: Vec<f64>,
+    average_price: Vec<f64>,
+    trading_volume: Vec<f64>,
+}
 
 pub async fn main(end_date_str: date::RocDateString) -> anyhow::Result<()> {
     logger::log(format!("run with end_date: {}", end_date_str));
@@ -37,11 +46,44 @@ pub async fn main(end_date_str: date::RocDateString) -> anyhow::Result<()> {
                     Ok(d) => d,
                     Err(e) => {
                         logger::error(format!("fetch daily crop transaction data: {:?}", e));
-                        vec![]
+                        return;
                     }
                 };
 
+                if crop_data.len() == 0 {
+                    return;
+                }
+
                 println!("{:?}", crop_data);
+
+                // TODO: migrate the following code to statistic module
+                let crop_code = &crop_data.first().unwrap().crop_code;
+                let end_date = internal_end_date_str;
+
+                let x = (1..crop_data.len() + 1).map(|x| x as f64).collect();
+
+                let summary_material = SummaryMaterial {
+                    high_price: crop_data.iter().map(|data| data.high_price).collect(),
+                    mid_price: crop_data.iter().map(|data| data.mid_price).collect(),
+                    low_price: crop_data.iter().map(|data| data.low_price).collect(),
+                    average_price: crop_data.iter().map(|data| data.average_price).collect(),
+                    trading_volume: crop_data.iter().map(|data| data.trading_volume).collect(),
+                };
+
+                let y = summary_material.average_price;
+                println!("average_price y: {:?}", y);
+
+                let data = vec![("Y", y), ("X", x)];
+                let data = RegressionDataBuilder::new().build_from(data).unwrap();
+                let formula = "Y ~ X";
+                let model = FormulaRegressionBuilder::new()
+                    .data(&data)
+                    .formula(formula)
+                    .fit()
+                    .unwrap();
+                let parameters: Vec<_> = model.iter_parameter_pairs().collect();
+
+                println!("{:?}", parameters);
             })
         })
         .collect();
