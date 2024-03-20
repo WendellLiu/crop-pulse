@@ -42,7 +42,7 @@ async fn main() -> anyhow::Result<()> {
 
     let end_date = args.end.unwrap_or(default_date);
 
-    cmd::aggregate_daliy_crop_summary(RocDateString(end_date)).await?;
+    cmd::aggregate_daliy_crop_summary::main(RocDateString(end_date)).await?;
 
     Ok(())
 }

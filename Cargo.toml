@@ -15,6 +15,10 @@ path = "src/bin/fetch_crop_transactions.rs"
 name = "daily_crop_summary"
 path = "src/bin/daily_crop_summary.rs"
 
+[[bin]]
+name = "playground"
+path = "src/bin/playground.rs"
+
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
