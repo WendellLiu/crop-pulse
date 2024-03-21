@@ -1,3 +1,4 @@
+use chrono::{Duration, NaiveDate};
 use futures::future;
 use linregress::{FormulaRegressionBuilder, RegressionDataBuilder};
 
@@ -5,7 +6,7 @@ use crate::db::data::{crops, daily_crop_transactions};
 use crate::db::pool;
 use crate::helpers::date;
 use crate::logger;
-use chrono::{Duration, NaiveDate};
+use crate::statistic::basic::normalize;
 
 struct SummaryMaterial {
     high_price: Vec<f64>,
@@ -70,7 +71,7 @@ pub async fn main(end_date_str: date::RocDateString) -> anyhow::Result<()> {
                     trading_volume: crop_data.iter().map(|data| data.trading_volume).collect(),
                 };
 
-                let y = summary_material.average_price;
+                let y = normalize(&summary_material.average_price);
                 println!("average_price y: {:?}", y);
 
                 let data = vec![("Y", y), ("X", x)];
