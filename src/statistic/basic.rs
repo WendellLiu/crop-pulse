@@ -15,3 +15,19 @@ where
         .map(|x| (x - min) / (max - min))
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize() {
+        let data = vec![1, 2, 3, 4, 5];
+
+        let expected_output = vec![0.0, 0.25, 0.5, 0.75, 1.0];
+
+        let result = normalize(&data);
+
+        assert_eq!(result, expected_output);
+    }
+}
