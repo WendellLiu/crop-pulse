@@ -1,12 +1,11 @@
 use chrono::{Duration, NaiveDate};
 use futures::future;
-use linregress::{FormulaRegressionBuilder, RegressionDataBuilder};
 
-use crate::db::data::{crops, daily_crop_transactions};
+use crate::db::data::{crops, crops_summary_14_days, daily_crop_transactions};
 use crate::db::pool;
 use crate::helpers::date;
 use crate::logger;
-use crate::statistic::basic::normalize;
+use crate::statistic::daily_summary::calculate_serial_beta_coefficient;
 
 struct SummaryMaterial {
     high_price: Vec<f64>,
@@ -61,8 +60,6 @@ pub async fn main(end_date_str: date::RocDateString) -> anyhow::Result<()> {
                 let crop_code = &crop_data.first().unwrap().crop_code;
                 let end_date = internal_end_date_str;
 
-                let x = (1..crop_data.len() + 1).map(|x| x as f64).collect();
-
                 let summary_material = SummaryMaterial {
                     high_price: crop_data.iter().map(|data| data.high_price).collect(),
                     mid_price: crop_data.iter().map(|data| data.mid_price).collect(),
@@ -71,20 +68,28 @@ pub async fn main(end_date_str: date::RocDateString) -> anyhow::Result<()> {
                     trading_volume: crop_data.iter().map(|data| data.trading_volume).collect(),
                 };
 
-                let y = normalize(&summary_material.average_price);
-                println!("average_price y: {:?}", y);
+                let crops_summary_14_days_data = crops_summary_14_days::CropsSummary14Days {
+                    end_date: end_date.to_string(),
+                    crop_code: crop_code.to_string(),
+                    high_price_beta_coefficient: calculate_serial_beta_coefficient(
+                        &summary_material.high_price,
+                    ),
+                    mid_price_beta_coefficient: calculate_serial_beta_coefficient(
+                        &summary_material.mid_price,
+                    ),
+                    low_price_beta_coefficient: calculate_serial_beta_coefficient(
+                        &summary_material.low_price,
+                    ),
+                    average_price_beta_coefficient: calculate_serial_beta_coefficient(
+                        &summary_material.average_price,
+                    ),
+                    trading_volume_beta_coefficient: calculate_serial_beta_coefficient(
+                        &summary_material.trading_volume,
+                    ),
+                    trading_volume_sum: summary_material.trading_volume.iter().sum(),
+                };
 
-                let data = vec![("Y", y), ("X", x)];
-                let data = RegressionDataBuilder::new().build_from(data).unwrap();
-                let formula = "Y ~ X";
-                let model = FormulaRegressionBuilder::new()
-                    .data(&data)
-                    .formula(formula)
-                    .fit()
-                    .unwrap();
-                let parameters: Vec<_> = model.iter_parameter_pairs().collect();
-
-                println!("{:?}", parameters);
+                println!("{:?}", crops_summary_14_days_data);
             })
         })
         .collect();
